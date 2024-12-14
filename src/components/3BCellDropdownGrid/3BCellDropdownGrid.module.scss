@@ -1,0 +1,60 @@
+.cellDropdownGrid {
+    z-index: 9999;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    resize: both;
+
+    // 添加搜索框样式
+    .searchBox {
+        padding: 10px;
+        border-bottom: 1px solid #e8e8e8;
+        
+        .searchInput {
+            // width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            outline: none;
+            
+            &:focus {
+                border-color: #40a9ff;
+                box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+            }
+            
+            &::placeholder {
+                color: #bfbfbf;
+            }
+        }
+    }
+
+    :global(.smart-element.smart-grid) {
+        margin: 10px;
+        width: auto;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    :global(.smart-grid > .smart-container .smart-grid-content) {
+        width: auto;
+        max-width: 500px;
+        height: 100%;
+        max-height: 250px;
+        box-sizing: border-box;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+}
+
+// 添加单元格样式
+:global {
+    .cell-dropdown-trigger {
+        cursor: pointer;
+        // padding: 4px 8px;
+        // min-height: 20px;
+        line-height: 2em;
+
+        &:hover {
+            // background-color: #f5f5f5;
+        }
+    }
+}
