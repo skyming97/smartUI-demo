@@ -13,6 +13,7 @@ interface DropdownGridTreeProps {
     multiple?: boolean;
     /** 树形模式 */
     isTree?: boolean;
+    cellEditable?: boolean;
     /** 数据改变回调 */
     onChange?: (data: any) => void;
     /** 显示字段 */
@@ -70,6 +71,7 @@ const CellDropdownGridTree: React.FC<DropdownGridTreeProps> = ({
     valueExpr = 'val',
     dropdownDataSourceSettings,
     isTree,
+    cellEditable,
     onFocusedRowChange
 }) => {
     const gridRef = useRef<any>(null);
@@ -111,6 +113,7 @@ const CellDropdownGridTree: React.FC<DropdownGridTreeProps> = ({
 
     // 格式化显示值的函数
     const formatDisplayValue = useCallback((valueStr: string) => {
+        console.log('%c [ formatDisplayValue valueStr ]-116', 'font-size:13px; background:#5DA979; color:#007AFF;', valueStr);
         if (!valueStr) {
             return '请选择';
         }
@@ -184,13 +187,13 @@ const CellDropdownGridTree: React.FC<DropdownGridTreeProps> = ({
                     return value;
                 },
                 setValue: (value: any) => {
-                    // ... existing code ...
-                    const newData = [...gridData];
-                    if (currentCell) {
-                        // 更新对应行的 selectedValue
-                        newData[currentCell.rowIndex].selectedValue = value;
-                        setGridData(newData);
-                    }
+                    // // ... existing code ...
+                    // const newData = [...gridData];
+                    // if (currentCell) {
+                    //     // 更新对应行的 selectedValue
+                    //     newData[currentCell.rowIndex].selectedValue = value;
+                    //     setGridData(newData);
+                    // }
                     return value;
                 }
             }
@@ -470,26 +473,43 @@ const CellDropdownGridTree: React.FC<DropdownGridTreeProps> = ({
         }
     };
 
-    // 模拟异步请求权限
-    const checkCellEditPermission = async (rowId: string, columnField: string): Promise<boolean> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // 模拟后台逻辑：只允许编辑 age 字段且 id 为偶数的行
-                const isAgeField = columnField === 'age';
-                const isEvenId = parseInt(rowId) % 2 === 0;
-                resolve(isAgeField && isEvenId);
-            }, 500);
-        });
-    };
-
     return (
         <div>
             <h3 className="sticky-header component-header">
                 3B. 下拉网格单元格示例
             </h3>
+            <h3>1、SmartUI 下拉网格列需要有 显示值，存储值，显示值是在单元格渲染时显示的，而存储值是绑定在数据源中的。并且单元格的下拉网格需要支持搜索功能。</h3>
+            <h4>答：使用 formatFunction 和 editor 来分别实现渲染和编辑阶段的显示与存储值。由于SmartUI Grid 自带搜索框是弹出式的，会与下拉弹框冲突，所以使用自定义的搜索框实现搜索功能。</h4>
+            <h3>2、SmartUI 网格的单元格需要支持显示 Listbox，就是复选框组。</h3>
+            <h4>答：使用 editor 的 template（checklist） 属性来实现复选框组。（目前无法显示出来，正在询问 SmartUI）</h4>
+
+            <h3>3、SmartUI 非单元格中的下拉网格,下拉树形网格也需要支持存储值和显示值的功能，并且下拉网格具有搜索功能。</h3>
+            <h4>答：使用 onRender 和 onRowClick 来分别实现显示存储的默认值和选择的显示存储值。使用html 模板实现搜索过滤功能。（重置存在UI未更新问题）</h4>
+
+            <h3>4、SmartUI 网格中，按Tab键需要从当前选中单元格焦点跳转到下一列单元格的焦点。</h3>
+            <h4>答：开启 单元格编辑 后可以从左至右进行单元格跳转。</h4>
+
+            <h3>5、SmartUI 网格的只读单元格，按ctrl +X 时会将只读单元格的内容剪切掉</h3>
+            <h4>答：测试发现，进入编辑状态后，按ctrl + X ，并在单元格失焦时单元格内容还原。非编辑状态，按ctrl + X 会剪切掉单元格内容并不会复原。https://www.htmlelements.com/react/demos/grid/editing-readonly/
+                暂时没找到解决方案。（问了 SmartUI 几个问题之后需要查看 授权许可证 才能继续提问。）
+            </h4>
+
+            <h3>6、SmartUI 多选时选中行，焦点行</h3>
+            <h4>答：使用gridRef.current.getSelection().focused 获取当前焦点行。</h4>
+
+            <h3>7、SmartUI 单元格验证（异步）</h3>
+            <h4>答：使用 onCellUpdate 进行异步处理，实现验证需求。</h4>
+
+            <h3>8、SmartUI 单元格编辑器显示控制（异步）</h3>
+            <h4>答：暂未找到合适的异步控制显隐的方式。</h4>
+
+            <h3>9、命令列（SmartUI Grid 中的右侧操作栏）需要扩展更多操作按钮</h3>
+            <h4>答：SmartUI 提供的扩展方式，只能自定义UI（text、label、icon等），无法自定义事件方法，所以可能需要自己用 html 模板实现。
+            https://www.htmlelements.com/react/demos/grid/editing-command-column-custom/
+            </h4>
             <div id='gridContainer'>
-                <Grid
-                    ref={gridRef}
+                    <Grid
+                        ref={gridRef}
                     appearance={{
                         allowHover: true,
                     }}
@@ -499,8 +519,8 @@ const CellDropdownGridTree: React.FC<DropdownGridTreeProps> = ({
                     filtering={{ enabled: true }}
                     selection={{
                         enabled: true,
-                        // allowCellSelection: true,
-                        allowRowSelection: true,
+                        allowCellSelection: cellEditable,
+                        allowRowSelection: !cellEditable,
                         allowRowHeaderSelection: true,
                         allowColumnHeaderSelection: true,
                         mode: 'extended',

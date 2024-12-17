@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Grid } from 'smart-webcomponents-react/grid';
 import styles from './3DropdownGridTree.module.scss';
 
@@ -23,6 +23,8 @@ const DropdownGridTree: React.FC<DropdownGridTreeProps> = ({
     const treeGridRef = useRef<any>(null);
     const [selectedValue, setSelectedValue] = useState<string>('');
     const [selectedTreeValue, setSelectedTreeValue] = useState<string>('');
+    const [searchValue, setSearchValue] = useState('');
+    const [treeSearchValue, setTreeSearchValue] = useState('');
 
     const data = [
         { EmployeeID: 1, Name: '张三', age: 30, department: '销售部' },
@@ -111,7 +113,7 @@ const DropdownGridTree: React.FC<DropdownGridTreeProps> = ({
     },
     {
         "EmployeeID": 8,
-        "Name": "郑十",
+        "Name": "郑���",
         "ReportsTo": 2,
         "Country": "中国",
         "Title": "销售经理",
@@ -178,6 +180,42 @@ const DropdownGridTree: React.FC<DropdownGridTreeProps> = ({
     }
     ];
 
+    // 过滤数据
+    const filteredData = useMemo(() => {
+        if (!searchValue.trim()) {
+            return data;
+        }
+        const filtered = data.filter(item =>
+            Object.values(item).some(value =>
+                String(value).toLowerCase().includes(searchValue.toLowerCase())
+            )
+        );
+        
+        // 确保网格刷新
+        if (gridRef.current) {
+            // 方案1: 使用 setTimeout 确保在下一个事件循环中刷新
+            setTimeout(() => {
+                gridRef.current.refresh();
+            }, 0);
+            
+            // // 或者方案2: 直接更新数据源
+            // gridRef.current.dataSource = filtered;
+        }
+        
+        return filtered;
+    }, [searchValue, data]);
+
+    const filteredTreeData = useMemo(() => {
+        if (!treeSearchValue?.trim()) {
+            return treeData;
+        }
+        return treeData.filter(item =>
+            Object.values(item).some(value =>
+                String(value).toLowerCase().includes(treeSearchValue.toLowerCase())
+            )
+        );
+    }, [treeData, treeSearchValue]);
+
     const handleSelect = (event: any) => {
         const selectedRow = event.detail.data;
         if (selectedRow) {
@@ -229,6 +267,110 @@ const DropdownGridTree: React.FC<DropdownGridTreeProps> = ({
         }
     };
 
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setSearchValue(value);
+
+        // 当搜索框清空时，重置网格状态
+        if (!value?.trim() && gridRef.current) {
+            gridRef.current.refresh();
+        }
+    };
+
+    const handleTreeSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setTreeSearchValue(value);
+
+        // 当搜索框清空时，重置树形网格状态
+        if (!value?.trim() && treeGridRef.current) {
+            treeGridRef.current.refresh();
+        }
+    };
+
+    const gridHeaderTemplate = (element: HTMLElement) => {
+        element.innerHTML = `
+            <div class="${styles.searchContainer}">
+                <input
+                    type="text" 
+                    class="${styles.searchInput}"
+                    placeholder="搜索..."
+                    value="${searchValue}"
+                />
+                ${searchValue ? `
+                    <button class="${styles.clearButton}">
+                        <span>×</span>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+
+        const input = element.querySelector('input');
+        const clearButton = element.querySelector(`.${styles.clearButton}`);
+
+        if (input) {
+            input.addEventListener('input', (e) => {
+                const value = (e.target as HTMLInputElement).value;
+                setSearchValue(value);
+                if (!value && gridRef.current) {
+                    gridRef.current.refresh();
+                }
+            });
+        }
+
+        if (clearButton) {
+            clearButton.addEventListener('click', () => {
+                setSearchValue('');
+                if (gridRef.current) {
+                    gridRef.current.refresh();
+                }
+                // 重新渲染模板以移除清除按钮
+                gridHeaderTemplate(element);
+            });
+        }
+    };
+
+    const treeHeaderTemplate = (element: HTMLElement) => {
+        element.innerHTML = `
+            <div class="${styles.searchContainer}">
+                <input 
+                    type="text" 
+                    class="${styles.searchInput}"
+                    placeholder="搜索..."
+                    value="${treeSearchValue}"
+                />
+                ${treeSearchValue ? `
+                    <button class="${styles.clearButton}">
+                        <span>×</span>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+
+        const input = element.querySelector('input');
+        const clearButton = element.querySelector(`.${styles.clearButton}`);
+
+        if (input) {
+            input.addEventListener('input', (e) => {
+                const value = (e.target as HTMLInputElement).value;
+                setTreeSearchValue(value);
+                if (!value && treeGridRef.current) {
+                    treeGridRef.current.refresh();
+                }
+            });
+        }
+
+        if (clearButton) {
+            clearButton.addEventListener('click', () => {
+                setTreeSearchValue('');
+                if (treeGridRef.current) {
+                    treeGridRef.current.refresh();
+                }
+                // 重新渲染模板以移除清除按钮
+                treeHeaderTemplate(element);
+            });
+        }
+    };
+
     const treeDataSourceSettings = {
         keyDataField: 'EmployeeID',
         parentDataField: 'ReportsTo',
@@ -246,22 +388,6 @@ const DropdownGridTree: React.FC<DropdownGridTreeProps> = ({
         ]
     };
 
-    useEffect(() => {
-        // 初始化时设置下拉按钮的文本
-        if (gridRef.current) {
-            const dropDownButton = gridRef.current.element?.querySelector('.smart-grid-drop-down-button .smart-action-button');
-            if (dropDownButton) {
-                dropDownButton.innerHTML = '选择一个选项';
-            }
-        }
-        if (treeGridRef.current) {
-            const dropDownButton = treeGridRef.current.element?.querySelector('.smart-grid-drop-down-button .smart-action-button');
-            if (dropDownButton) {
-                dropDownButton.innerHTML = '选择一个选项';
-            }
-        }
-    }, []);
-
     return (
         <div>
             <h3 className="sticky-header component-header">
@@ -273,19 +399,29 @@ const DropdownGridTree: React.FC<DropdownGridTreeProps> = ({
 
             <h4>下拉网格</h4>
             <div id='gridContainer'>
+                <div>{JSON.stringify(filteredData)}</div>
                 <Grid
                     ref={gridRef}
                     dropDownMode
-                    dataSource={data}
+                    dataSource={filteredData}
                     columns={columns}
-                    filtering={{ enabled: true }}
+                    filtering={{ enabled: false }}
                     selection={{ enabled: true, mode: 'one' }}
                     onRowClick={handleSelect}
                     appearance={{ alternationCount: 2, allowHover: true }}
-                    
                     header={{
                         visible: true,
-                        searchCommand: 'filter',
+                        template: gridHeaderTemplate
+                    }}
+                    onRender={() => {
+                        // 初始化时设置下拉按钮的文本
+                        if (gridRef.current) {
+                            const dropDownButton = gridRef.current.element?.querySelector('.smart-grid-drop-down-button .smart-action-button');
+                            if (dropDownButton) {
+                                dropDownButton.innerHTML = '选择一个选项';
+                            }
+                        }
+
                     }}
                 />
             </div>
@@ -296,13 +432,25 @@ const DropdownGridTree: React.FC<DropdownGridTreeProps> = ({
                     ref={treeGridRef}
                     appearance={{ allowHover: true }}
                     dropDownMode={true}
-                    dataSource={treeData}
+                    dataSource={filteredTreeData}
                     columns={treeColumns}
                     sorting={{ enabled: true }}
-                    filtering={{ enabled: true }}
+                    filtering={{ enabled: false }}
                     selection={{ enabled: true, mode: 'one' }}
                     dataSourceSettings={treeDataSourceSettings}
                     onRowClick={handleTreeSelect}
+                    header={{
+                        visible: true,
+                        template: treeHeaderTemplate
+                    }}
+                    onRender={() => {
+                        if (treeGridRef.current) {
+                            const dropDownButton = treeGridRef.current.element?.querySelector('.smart-grid-drop-down-button .smart-action-button');
+                            if (dropDownButton) {
+                                dropDownButton.innerHTML = '选择一个选项';
+                            }
+                        }
+                    }}
                 />
             </div>
 

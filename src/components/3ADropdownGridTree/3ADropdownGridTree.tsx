@@ -3,6 +3,7 @@ import { Grid } from 'smart-webcomponents-react/grid';
 
 interface DropdownGridTreeProps {
     onChange?: (data: any[]) => void;
+    selectedValue?: string;
     displayExpr?: string;
     valueExpr?: string;
 }
@@ -10,12 +11,13 @@ interface DropdownGridTreeProps {
 const DropdownGridTreeMultiple: React.FC<DropdownGridTreeProps> = ({
     onChange,
     displayExpr = 'Name',
-    valueExpr = 'EmployeeID'
+    valueExpr = 'EmployeeID',
+    selectedValue
 }) => {
     const gridRef = useRef<any>(null);
     const treeGridRef = useRef<any>(null);
-    const [selectedValues, setSelectedValues] = useState<string[]>([]);
-    const [selectedTreeValues, setSelectedTreeValues] = useState<string[]>([]);
+    const [selectedValues, setSelectedValues] = useState<string[]>(selectedValue?.split(',') || []);
+    const [selectedTreeValues, setSelectedTreeValues] = useState<string[]>(selectedValue?.split(',') || []);
 
     // 数据源
     const data = [
@@ -74,12 +76,24 @@ const DropdownGridTreeMultiple: React.FC<DropdownGridTreeProps> = ({
         ]
     };
 
-    // 下拉网格的数据源
-    const dropdownDataMemo = useMemo(() => [
-        { id: 1, displayName: '选项A', value: 'A' },
-        { id: 2, displayName: '选项B', value: 'B' },
-        { id: 3, displayName: '选项C', value: 'C' },
-    ], []);
+    // 初始化时需要为下拉网格和下拉树形网格设置选中值(需要将1,2等存储值转换成显示值)
+    const initDefaultSelectedValue = useCallback(() => {
+        if (gridRef.current) {
+            const container = document.getElementById('gridContainerMultiple');
+            const dropDownButton = container?.querySelector('.smart-grid-drop-down-button .smart-action-button');
+            console.log('%c [ selectedValues ]-86', 'font-size:13px; background:#5DA979; color:#007AFF;', selectedValues);
+            console.log('%c [ dropDownButton ]-86', 'font-size:13px; background:#5DA979; color:#007AFF;', dropDownButton);
+            // 将存储值转换为显示值
+            const displayValues = selectedValues.map(value => {
+                const found = treeData.find(data => data.EmployeeID === Number(value));
+                return found ? found.Name : value;
+            });
+            if (dropDownButton) {
+                dropDownButton.innerHTML = displayValues.join(',') || '请选择'; // 显示显示值
+            }
+            gridRef.current.value = selectedValues.join(',');
+        }
+    }, [selectedValues, gridRef, treeData]);
 
     const handleConfirm = useCallback((gridType: 'normal' | 'tree') => {
         if (gridType === 'normal') {
@@ -122,7 +136,7 @@ const DropdownGridTreeMultiple: React.FC<DropdownGridTreeProps> = ({
             }
             onChange?.(selectedRows);
         }
-    }, [displayExpr, valueExpr, onChange]);
+    }, [displayExpr, valueExpr, onChange, selectedValue]);
 
     const handleCancel = (gridType: 'normal' | 'tree') => {
         if (gridType === 'normal') {
@@ -158,6 +172,9 @@ const DropdownGridTreeMultiple: React.FC<DropdownGridTreeProps> = ({
         if (cancelBtn) {
             cancelBtn.addEventListener('click', () => handleCancel('normal'));
         }
+
+        // 初始化时需要为下拉网格设置选中值
+        initDefaultSelectedValue();
     };
 
     const handleTreeGridRender = (event: any) => {
@@ -236,7 +253,7 @@ const DropdownGridTreeMultiple: React.FC<DropdownGridTreeProps> = ({
                     columns={columns}
                     sorting={{ enabled: true }}
                     filtering={{ enabled: true }}
-                    header={{visible: true, buttons: ['search']}}
+                    header={{ visible: true, buttons: ['search'] }}
                     selection={{
                         enabled: true,
                         checkBoxes: {

@@ -10,6 +10,7 @@ import InputMasking from './components/7InputMasking.tsx';
 import DropdownGridTreeMultiple from "./components/3ADropdownGridTree/3ADropdownGridTree.tsx";
 import CellDropdownGridTree from "./components/3BCellDropdownGrid/3BCellDropdownGrid.tsx";
 import { CheckBox } from 'smart-webcomponents-react/checkbox';
+import CellDropdown from "./components/CellDropdown/CellDropdown.tsx";
 
 
 const App: React.FC = () => {
@@ -54,17 +55,21 @@ const App: React.FC = () => {
 
     const [isMultiple, setIsMultiple] = useState<boolean>(false);
     const [isTree, setIsTree] = useState<boolean>(false);
+    const [cellEditable, setCellEditable] = useState<boolean>(false);
 
-    const dsMemo = React.useMemo(() => {
-        return [
-            { EmployeeID: 1, Name: '张三', age: 30, department: '销售部', selectedValue: 'A', checkListValue: '1,2,3' },
-            { EmployeeID: 2, Name: '李四', age: 28, department: '市场部', selectedValue: 'B', checkListValue: '1,2,3' },
-            { EmployeeID: 3, Name: '王五', age: 35, department: '技术部', selectedValue: 'C', checkListValue: '1,2,3' },
-            { EmployeeID: 4, Name: '赵六', age: 32, department: '人事部', selectedValue: '', checkListValue: '1,2,3' },
-            { EmployeeID: 5, Name: '钱七', age: 27, department: '财务部', selectedValue: '', checkListValue: '1,2,3' },
-        ]
+    const ds = [
+        { EmployeeID: 1, Name: '张三', age: 30, department: '销售部', selectedValue: 'A', checkListValue: '1,2,3' },
+        { EmployeeID: 2, Name: '李四', age: 28, department: '市场部', selectedValue: 'B', checkListValue: '1,2,3' },
+        { EmployeeID: 3, Name: '王五', age: 35, department: '技术部', selectedValue: 'C', checkListValue: '1,2,3' },
+        { EmployeeID: 4, Name: '赵六', age: 32, department: '人事部', selectedValue: '', checkListValue: '1,2,3' },
+        { EmployeeID: 5, Name: '钱七', age: 27, department: '财务部', selectedValue: '', checkListValue: '1,2,3' },
+    ]
 
-    }, []);
+    const newDropdownDataSource = [
+        { id: 1, name: '第1行', value: 'A' },
+        { id: 2, name: '第2行', value: 'B' },
+        { id: 3, name: '第3行', value: 'C' },
+    ]
 
     const dsSettings = React.useMemo(() => {
         if (isTree) {
@@ -92,6 +97,9 @@ const App: React.FC = () => {
             />
             <ol>
                 <li className="component-wrapper">
+                    <CellDropdown dataSource={newDropdownDataSource} />
+                </li>
+                <li className="component-wrapper">
                     <TextBoxVsInput />
                 </li>
                 <li className="component-wrapper">
@@ -101,13 +109,14 @@ const App: React.FC = () => {
                     <DropdownGridTree />
                 </li>
                 <li className="component-wrapper">
-                    <DropdownGridTreeMultiple onChange={handleChange} />
+                    <DropdownGridTreeMultiple onChange={handleChange} selectedValue={''} />
                 </li>
                 <li className="component-wrapper">
-                    <CellDropdownGridTree onFocusedRowChange={handleFocusedRowChange} dataSource={dsMemo} multiple={isMultiple} isTree={isTree} dropdownDataSourceSettings={dsSettings} />
+                    <CellDropdownGridTree onFocusedRowChange={handleFocusedRowChange} dataSource={ds} multiple={isMultiple} isTree={isTree} cellEditable={cellEditable} dropdownDataSourceSettings={dsSettings} />
                     <div>焦点行： 第{focusedRowIndex}行</div>
                     <CheckBox onChange={() => setIsMultiple(!isMultiple)}>多选</CheckBox>
                     <CheckBox onChange={() => setIsTree(!isTree)}>树形</CheckBox>
+                    <CheckBox onChange={() => setCellEditable(!cellEditable)}>单元格编辑</CheckBox>
                 </li>
                 <li className="component-wrapper">
                     <GridColumnEditors />
