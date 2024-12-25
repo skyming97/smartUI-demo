@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 Annual Sales Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #chart_div {
+            width: 100%;
+            height: 500px;
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .powered-by {
+            font-size: 12px;
+            color: #BDBDBD;
+            text-decoration: none;
+        }
+        .powered-by:hover {
+            color: #9E9E9E;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>2025 Annual Sales Report</h1>
+        <div id="chart_div"></div>
+        <div class="footer">
+            <a class="powered-by" href="https://livechatai.com/">Powered by LiveChatAI</a>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['Product', 'Amount'],
+                ['3030防水软灯条', 13527.2],
+                ['刺破连接线包装', 630],
+                ['刺破线包装', 300],
+                ['卡座包装', 175],
+                ['尾塞包装', 125],
+                ['刺破线包装', 425],
+                ['刺破线包装', 264.5],
+                ['刺破线包装', 150],
+                ['刺破线包装', 150],
+                ['刺破线包装', 675],
+                ['刺破线包装', 90],
+                ['刺破线包装', 0]
+            ]);
+
+            var options = {
+                title: 'Sales Amount by Product',
+                titleTextStyle: {
+                    fontSize: 18,
+                    bold: true
+                },
+                height: 500,
+                backgroundColor: 'white',
+                legend: {
+                    position: 'right',
+                    textStyle: {
+                        fontSize: 12
+                    }
+                },
+                chartArea: {
+                    width: '80%',
+                    height: '80%'
+                },
+                sliceVisibilityThreshold: 0
+            };
+
+            var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        }
+
+        // 响应式图表
+        window.addEventListener('resize', function() {
+            drawChart();
+        });
+    </script>
+</body>
+</html> 
